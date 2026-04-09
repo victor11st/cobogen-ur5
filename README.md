@@ -1,5 +1,3 @@
-# cobogen-ur5
-Cognitive architecture that translates natural language commands into executable instructions for a UR5 robot.
 # CoboGen-UR5
 
 Cognitive control system for a UR5 collaborative robot using generative AI and natural language commands.
