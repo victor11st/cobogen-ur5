@@ -3,47 +3,56 @@ from faster_whisper import WhisperModel
 import io
 import os
 
-# Ruta al modelo que descargaste anteriormente
-model_path = "/home/ivan/proyectos/ur5/models/whisper-large-v3/models--Systran--faster-whisper-large-v3/snapshots/edaa852ec7e145841d8ffdb056a99866b5f0a478"
+# Model path
+model_path = "/home/ivan/proyectos/ur5/models/whisper-large-v3/models--Systran--faster-whisper-small/snapshots/536b0662742c02347bc0e980a01041f333bce120/"
 
-# Inicializar el modelo
-# Si tienes una tarjeta NVIDIA, usa device="cuda" y compute_type="float16"
-# Para probar solo con procesador, usa device="cpu" y compute_type="int8"
-print("Cargando modelo de IA...")
-model = WhisperModel(model_path, device="cpu", compute_type="int8")
 
-def realizar_prueba():
+print("Loading model...")
+
+model = WhisperModel(model_path, 
+                     device="cpu", # Change to 'cuda' for better performance if an NVIDIA GPU is available
+                     compute_type="int8")
+
+def test_model():
+
     recognizer = sr.Recognizer()
     mic = sr.Microphone()
-
+    print("model loaded successfully")
     with mic as source:
-        print("\n--- CONFIGURACIÓN ---")
-        print("Ajustando ruido ambiente. Por favor, mantén silencio un momento...")
-        # recognizer.adjust_for_ambient_noise(source, duration=2)
-        print("Ajuste completado.")
+        print("\n--- CONFIGURATION ---")
+        print("Adjusting ambient noise... Please stay silent for a moment.")
+        recognizer.adjust_for_ambient_noise(source, duration=5)
+        print("Adjustment completed.")
         
-        print("\n--- ESCUCHANDO ---")
-        print("Di algo en español (ejemplo: 'Mueve el robot a la derecha')")
+        print("\n--- Listening ---")
+        print("Speak spanish")
 
         try:
             while True:
-                # El sistema escucha hasta detectar un silencio significativo
-                audio = recognizer.listen(source, phrase_time_limit=10)
+                try:
+                    # The system listens until silence is detected
+                    audio = recognizer.listen(source, timeout=5, phrase_time_limit=10)
+                    
+                    # Convert capture audio to compatible format whith Whisper
+                    audio_data = io.BytesIO(audio.get_wav_data())
+                    
+                    # Procesar el audio con el modelo
+                    # Precess audio with model
+                    segments, info = model.transcribe(audio_data, 
+                                                    language="es", 
+                                                    beam_size=5,
+                                                    vad_filter=True)
+                    
+                    # Print result
+                    for segment in segments:
+                        print(f"[{info.language}] Text detected: {segment.text}")
+                except sr.WaitTimeoutError:
+                    print(" No speech detected")
                 
-                # Convertir el audio capturado a un formato compatible con Whisper
-                audio_data = io.BytesIO(audio.get_wav_data())
-                
-                # Procesar el audio con el modelo
-                segments, info = model.transcribe(audio_data, language="es", beam_size=5)
-                
-                # Imprimir los resultados
-                for segment in segments:
-                    print(f"[{info.language}] Texto detectado: {segment.text}")
-                
-                print("Escuchando de nuevo... (Presiona Ctrl+C para salir)")
+                print("Listening again... (Press Ctrl+C fot exit)")
 
         except KeyboardInterrupt:
-            print("\nPrueba finalizada por el usuario.")
+            print("\nTest finished.")
 
 if __name__ == "__main__":
-    realizar_prueba()
+    test_model()

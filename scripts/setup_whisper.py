@@ -1,18 +1,18 @@
 from faster_whisper import WhisperModel
 import os
 
-# Definimos la ruta local
-ruta_proyecto = os.getcwd()
-destino_modelo = os.path.join(ruta_proyecto, "models", "whisper-large-v3")
+# Define the local path for model storage
+project_path = os.getcwd()
+destination = os.path.join(project_path, "models", "whisper-large-v3")
 
-print(f"Descargando el cerebro del robot en: {destino_modelo}, tigre 🐯...")
+print(f"Downloading Whisper: {destination}...")
 
-# Al ejecutar esto, Python creará la estructura correcta dentro de tu carpeta
+# Initialize Whisper: This will download the model to the project folder if not present
 model = WhisperModel(
-    "large-v3", 
-    device="cpu",        # Usa "cuda" si ya tienes los drivers de NVIDIA listos
-    compute_type="int8", # 'int8' es más ligero y rápido para empezar
-    download_root=destino_modelo
+    "small", 
+    device="cpu",        # Change to 'cuda' for better performance if an NVIDIA GPU is available
+    compute_type="int8", # 'int8' faster and lighter (requires less RAM/VRAM)
+    download_root=destination
 )
 
-print("¡Mudanza completada! El modelo ya es parte de tu proyecto.")
+print("Model loaded and ready in the local project directory.")
