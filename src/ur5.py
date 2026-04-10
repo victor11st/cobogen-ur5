@@ -1,31 +1,67 @@
 import rtde_receive
 import rtde_control
+import math
 
 class UR5():
-    def __init__(self, ip):
-        self.receptor = rtde_receive.RTDEReceiveInterface(ip)
-        self.controlador = rtde_control.RTDEControlInterface(ip)
-        self.entorno = None
-        self.herramientas = {
-            "": [],
-            "": []
-        }
-        self.active_tool = None
-        self.estadp = None
-        self.tcp = None
-        self.home =  None
+    "Robot UR5"
+    def __init__(self, ip: str, tools: dict["name":"tcp"], workplace: list[float], home: tuple[float], freedom_grades: int):
+        tools = UR5._comprobe_tool(tools)
+        self._receptor = rtde_receive.RTDEReceiveInterface(ip)
+        self._controlador = rtde_control.RTDEControlInterface(ip)
+        self._workplace = workplace
+        self._tools = tools
+        self._active_tool = None
+        self._estate = None
+        self._tcp = None
+        #self._home =  UR5._validate_home(home, freedom_grades)
+        self._home = (0, -60, -130, 13, 90, 10)
 
     @property
-    def controlador(self):
-        return self.controlador
+    def home(self):
+        return self._home
     
-    @controlador.setter
-    def controlador(self, controlador):
-        self.controlador = controlador
+    @home.setter
+    def home(self, new_home: str):
+        self._home = UR5._validate_home(new_home)
 
-    def activar_herramienta(self, name_tool):
+    @staticmethod
+    def _validate_home(home: tuple[float]):
+        for grades_motor in home:
+            if not isinstance(grades_motor, float) and 350 < abs(grades_motor) < 0:
+                print("Grades of motor aren't invalids.")
+                return None
+        return home
+
+    @staticmethod
+    def _validate_tool(tools: dict["name":"tcp"]):
+        validate = False
+        tools_validates = {}
+        for name, tcp in tools.items():
+            if len(tcp) == 6:
+                for coord in tcp:
+                    if isinstance(coord, int):
+                        validate = True
+                    tools_validates[name] = tcp
+
+            if validate == True:
+                    print(f"{name} was add sucesful.")
+                    tools_validates[name] = tcp
+            else:
+                print(f"{name} was ignored, coordenates invalids.")
+        return tools_validates
+
+
+
+    def add_tool(self, tool: str, TCP: tuple[float]):
+        if UR5._comprobe_tool(TCP):
+            self._tools[tool] = TCP
+        else:
+            print("Tool wasn't add: Coordenates of TCP are invalids")
+
+
+    def change_tool(self, name_tool):
         if name_tool not in self.herramientas:
-            print("La IA intento usar una herrramienta no definida.")
+            print("Tool not defined")
             return False
 
         new_tcp = self.herramientas[name_tool] 
@@ -33,19 +69,24 @@ class UR5():
 
         self.active_tool = name_tool
 
-        print("La herramienta actual es:", self.active_tool)
+        print("The tool active is:", self.active_tool)
         return True
+    
+    def consult_tool_activate(self):
+        print("Tool active:", self._active_tool)
 
 
     def move_to_home(self):
-        
+        self._controlador.movej(self.home)
 
-    def change_tool(self):
-        self.tcp = tcp
         
     def pick_and_place(self):
-        self.controlador.moveJ()
         pass
+
+    def emergency_stop():
+        pass
+
+
 
 
 
