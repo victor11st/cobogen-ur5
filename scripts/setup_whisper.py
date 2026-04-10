@@ -1,18 +1,19 @@
 from faster_whisper import WhisperModel
 import os
 
-# Define the local path for model storage
+# Usamos una ruta más específica para no confundir modelos en el futuro, tigre 🐯
 project_path = os.getcwd()
-destination = os.path.join(project_path, "models", "whisper-large-v3")
+model_size = "small"
+destination = os.path.join(project_path, "models", f"whisper-{model_size}")
 
-print(f"Downloading Whisper: {destination}...")
+print(f"Downloading Whisper {model_size}: {destination}...")
 
-# Initialize Whisper: This will download the model to the project folder if not present
+# Inicializar el modelo: esto descargará el modelo a la carpeta del proyecto
 model = WhisperModel(
-    "small", 
-    device="cpu",        # Change to 'cuda' for better performance if an NVIDIA GPU is available
-    compute_type="int8", # 'int8' faster and lighter (requires less RAM/VRAM)
+    model_size, 
+    device="cpu",        # Cambia a 'cuda' si tienes GPU NVIDIA en el lab
+    compute_type="int8", # 'int8' es más rápido y ligero
     download_root=destination
 )
 
-print("Model loaded and ready in the local project directory.")
+print(f"Model {model_size} loaded and ready in: {destination}")
