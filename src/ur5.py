@@ -3,6 +3,7 @@ import rtde_control
 import math
 
 class UR5():
+<<<<<<< Updated upstream
     "Robot UR5"
     def __init__(self, ip: str, tools: dict["name":"tcp"], workplace: list[float], home: tuple[float], freedom_grades: int):
         tools = UR5._comprobe_tool(tools)
@@ -50,13 +51,38 @@ class UR5():
                 print(f"{name} was ignored, coordenates invalids.")
         return tools_validates
 
+=======
+    def __init__(self, ip: str, tools: dict["name":"tcp"]):
+        UR5._comprobe_tool(tools)
+        self._receptor = rtde_receive.RTDEReceiveInterface(ip)
+        self._controlador = rtde_control.RTDEControlInterface(ip)
+        self._entorno = None
+        self._tools = tools
+        self._active_tool = None
+        self._estadp = None
+        self._tcp = None
+        self._home =  None
+
+
+    
+    @staticmethod
+    def _comprobe_tool(tools: dict["name":"tcp"]):
+        if len(TCP) == 6:
+            return True
+        return False
+
+>>>>>>> Stashed changes
 
 
     def add_tool(self, tool: str, TCP: tuple[float]):
         if UR5._comprobe_tool(TCP):
             self._tools[tool] = TCP
         else:
+<<<<<<< Updated upstream
             print("Tool wasn't add: Coordenates of TCP are invalids")
+=======
+            print("Tool wasn't add: TCPenates of TCP aren validates")
+>>>>>>> Stashed changes
 
 
     def change_tool(self, name_tool):
@@ -77,7 +103,11 @@ class UR5():
 
 
     def move_to_home(self):
+<<<<<<< Updated upstream
         self._controlador.movej(self.home)
+=======
+        pass
+>>>>>>> Stashed changes
 
         
     def pick_and_place(self):
