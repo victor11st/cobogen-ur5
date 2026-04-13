@@ -142,15 +142,17 @@ class UR5():
                 self._controlador.moveL(point, speed, acceleration)
   
     def add_routine(self, new_points:list[dict], name_routine:str):
-        name_point = self.add_point()
-        self._routines[name_routine].append({
-            "name":name_point,
-            "type":"",
-            "speed":0.8,
-            "acceleration":2
-        })
+        self._routines[name_routine].append(new_points)
 
-    def add_point(self, name_point:str, position:str, orientation:str, config:dict):
+    def add_point(self, new_point:dict[str:list[float]], config_new_point:dict[str:str|float]) -> dict:
+        position = new_point["position"]
+        new_point = new_point["orientation"]
+
+        name_point = config_new_point["name"]
+        type_move_point = config_new_point["type"]
+        speed = config_new_point["speed"]
+        acceleration = config_new_point["acceleration"]
+
         coord_point = self._receptor.getActualPose()
         if name_point == None:
             name_point == f"point_{self._auto_point_counter}" #Generate auto name to point
@@ -162,16 +164,16 @@ class UR5():
             "orientation":orientation 
         }
     
-        # conf_new_point{
-        #     "name":name_point,
-        #     "type":config[type_mov],
-        #     "speed":config[speed],
-        #     "aceceleration":config[acceleration]
-        # }
+        conf_new_point = {
+             "name":name_point,
+             "type":type_move_point,
+             "speed":speed,
+             "acceleration":acceleration
+        }
 
 
         self._points[name_point] = new_point 
-        return new_point
+        return config_new_point
             
             
 
