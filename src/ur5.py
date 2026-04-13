@@ -141,39 +141,20 @@ class UR5():
             elif type_mov == "linear":
                 self._controlador.moveL(point, speed, acceleration)
   
-    def add_routine(self, new_points:list[dict], name_routine:str):
-        self._routines[name_routine].append(new_points)
+    def add_routine(self, name_routine:list[dict], config:dict[str:str|float]) -> None:
+        # PENSAR SI AÑADIR COMPROBACION DE EXISTENCIA DE PUNTOS, ASEGURA QUE NO HAYA ERROR
+        if name_routine in self._routines:
+            self._routines[name_routine].append(config)
+        else:
+            self._routines[name_routine] = [config]
+    def add_point(self, name_point:str, coord:dict[str:list[float]]) -> bool:
+        self._points[name_point] = coord
 
-    def add_point(self, new_point:dict[str:list[float]], config_new_point:dict[str:str|float]) -> dict:
-        position = new_point["position"]
-        new_point = new_point["orientation"]
+        if name_point in self._points:
+            return True
+        return False
+            
 
-        name_point = config_new_point["name"]
-        type_move_point = config_new_point["type"]
-        speed = config_new_point["speed"]
-        acceleration = config_new_point["acceleration"]
-
-        coord_point = self._receptor.getActualPose()
-        if name_point == None:
-            name_point == f"point_{self._auto_point_counter}" #Generate auto name to point
-        position = coord_point[:3]
-        orientation = coord_point[3:]
-
-        new_point = {
-            "position":position,
-            "orientation":orientation 
-        }
-    
-        conf_new_point = {
-             "name":name_point,
-             "type":type_move_point,
-             "speed":speed,
-             "acceleration":acceleration
-        }
-
-
-        self._points[name_point] = new_point 
-        return config_new_point
             
             
 
