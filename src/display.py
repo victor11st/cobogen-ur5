@@ -29,39 +29,41 @@ class Display:
 
     def teach_mode(self):
         print("Añadir nueva rutina")
-        name_new_routine = input("Nombre de la nueva rutina (no se admiten espacios):")
-        list_points = []
+        routine_name = input("Esriba el nombre de la nueva rutina")
         while True:
-            opc = input("Pulse 1 para añadir un punto o pulse 2 para terminar de crear rutina o pulse 3 para salir.")
+            opc = input("1. Añadir punto | 2. Terminar | 3. Salir: ")            
             match opc:
-                case "1": 
-                    name_routine = input("Esriba el nombre de la nueva rutina")
-                    new_point = self.request_point_info()
-                    name_point = new_point["name"]
-                    coord = new_point["coord"]
-                    config = new_point["config"]
-                    
-                    if name_point in self._robot.available_points:
-                        sobrescribir = input("Punto existente. ¿Desea sobreescribirlo? (S/N): ")
-                        if sobrescribir == "S":
-                            self._robot.add_point(name_point, coord)
-                        else:
-                            print("Acción cancelada")
-                            continue
-                    else:
-                        self._robot.add_point(name_point, coord)
-                    
-                    self._robot.add_routine(name_routine, config)
-                    print("Punto añadido a rutina correctamente.")
+                case "1":
+                    self._handle_add_point_to_routine(routine_name)
                     
                 case "2":
-                    self._robot.add_routine(new_point)
+                    pass
 
                 case "3": break
                 case _: print("Opción no vaálida")
 
+    def _handle_add_point_to_routine(self, routine_name):
+        new_point = self._request_point_info()
 
-    def request_point_info(self):
+        name_point = new_point["name"]
+        coord = new_point["coord"]
+        config = new_point["config"]
+        
+        if name_point in self._robot.available_points:
+            sobrescribir = input("Punto existente. ¿Desea sobreescribirlo? (S/N): ")
+            if sobrescribir == "S":
+                self._robot.add_point(name_point, coord)
+            else:
+                print("Acción cancelada")
+                return
+        else:
+            self._robot.add_point(name_point, coord)
+        
+        self._robot.add_routine(routine_name, config)
+        print("Punto añadido a rutina correctamente.")
+
+
+    def _request_point_info(self):
         position = self._robot.tcppose[:3]
         orientation = self._robot.tcppose[3:]
 
