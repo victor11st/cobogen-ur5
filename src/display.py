@@ -35,14 +35,50 @@ class Display:
             opc = input("Pulse 1 para añadir un punto o pulse 2 para terminar de crear rutina o pulse 3 para salir.")
             match opc:
                 case "1": 
-                    name_point = print("Escriba el nombre del punto o enter para omitir: ")
-                    if input == "":
-                        name_point = None
-                    new_point = self._robot.add_point(name_point)
-                    list_points.append()
-                    print("Punto guardado correctment.")
+                    input = input("Esriba el nombre de la nueva rutina")
+                    new_point = self.request_point_info()
+                    name = new_point["name"]
+                    coord = new_point["coord"]
+                    config = new_point["config"]
+                    self._robot.add_point(name, coord)
+                    self._robot.add_routine(name, config) # no cuadra ver como añadir rutina de manera ordenada
+                    print("Punto guardado correctamente.")
                 case "2":
                     self._robot.add_routine(new_point)
 
                 case "3": break
                 case _: print("Opción no vaálida")
+
+
+    def request_point_info(self):
+        position = self._robot.tcppose[:3]
+        orientation = self._robot.tcppose[3:]
+
+        name_point = input("Escriba el nombre del punto o pulse enter para omitir (no se admiten espacios).")
+        type_move_point = input("El movimiento al punto sera de tipo Joint(j) o de tipo Linear (L):")
+        speed = input("Velocidad a la que se llegará al punto. Por defecto  :")
+        acceleration = input("Aceleracion a la que se llegará al punto. Por defecto  :")
+
+        if name_point == "":
+            name_point = None
+
+        new_point_pose = {
+            "position":position,
+            "orientation":orientation 
+        }
+    
+        new_point_config = {
+             "name":name_point,
+             "type":type_move_point,
+             "speed":speed,
+             "acceleration":acceleration
+        }
+
+        new_point = {
+            "name":name_point,
+            "coord":new_point_pose,
+            "config":new_point_config
+        }
+
+
+        return new_point
