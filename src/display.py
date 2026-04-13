@@ -35,14 +35,25 @@ class Display:
             opc = input("Pulse 1 para añadir un punto o pulse 2 para terminar de crear rutina o pulse 3 para salir.")
             match opc:
                 case "1": 
-                    input = input("Esriba el nombre de la nueva rutina")
+                    name_routine = input("Esriba el nombre de la nueva rutina")
                     new_point = self.request_point_info()
-                    name = new_point["name"]
+                    name_point = new_point["name"]
                     coord = new_point["coord"]
                     config = new_point["config"]
-                    self._robot.add_point(name, coord)
-                    self._robot.add_routine(name, config) # no cuadra ver como añadir rutina de manera ordenada
-                    print("Punto guardado correctamente.")
+                    
+                    if name_point in self._robot.available_points:
+                        sobrescribir = input("Punto existente. ¿Desea sobreescribirlo? (S/N): ")
+                        if sobrescribir == "S":
+                            self._robot.add_point(name_point, coord)
+                        else:
+                            print("Acción cancelada")
+                            continue
+                    else:
+                        self._robot.add_point(name_point, coord)
+                    
+                    self._robot.add_routine(name_routine, config)
+                    print("Punto añadido a rutina correctamente.")
+                    
                 case "2":
                     self._robot.add_routine(new_point)
 
