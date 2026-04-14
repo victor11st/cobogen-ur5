@@ -7,7 +7,7 @@ class UR5():
     "Robot UR5"
     _JOINT_LIMIT_DEG = 355
 
-    def __init__(self, ip: str, tools: dict[str:tuple[int]], workplace: list[float], home: tuple[float], path_json: str):
+    def __init__(self, ip: str, workplace: list[float], home: tuple[float], path_json: str, tools: dict[str:tuple[int]] = {}):
         tools = UR5._validate_tools(tools)
         self._home = UR5._validate_home(home)
         
@@ -21,7 +21,6 @@ class UR5():
         self._tools = tools
         self._active_tool = None
         self._estate = None
-        self._tcp = None
         self._points = full_data.get("points", {})
         self._routines = full_data.get("routines", {})
         self._auto_point_counter = 0 # Adapter for JSON
@@ -40,6 +39,14 @@ class UR5():
         return list(self._points.keys())
 
 
+    @property
+    def active_tool(self):
+        return self.active_tool
+    
+    @property
+    def tools(self):
+        return self._tools
+    
     @property
     def active_tool(self):
         return self.active_tool
@@ -147,6 +154,7 @@ class UR5():
             self._routines[name_routine].append(config)
         else:
             self._routines[name_routine] = [config]
+
     def add_point(self, name_point:str, coord:dict[str:list[float]]) -> bool:
         self._points[name_point] = coord
 
@@ -155,6 +163,13 @@ class UR5():
         return False
             
 
-            
+    def add_tool(self, tool:dict[str:str|list[float]]) -> None:
+        name = tool["name"]
+        tcp = tool["tcp"]
+        if tool["name"] not in self._tools:
+            self._active_tools[name] = tcp
+
+
+    
             
 
