@@ -72,7 +72,7 @@ class Display:
         orientation = [rx, ry, rz]
         tcp_new_tool = position + orientation
 
-        self._robto.add_tool(tcp_new_tool)
+        self._robot.add_tool(tcp_new_tool)
         
 
 
@@ -82,7 +82,7 @@ class Display:
         tool = input("Elija la herramienta que desee calibrar: ")
         if tool <= len(self._robot.tools):
             print(f"Calibrando herramienta {self._robot.tools[tool - 1]}")
-            self._robot.calibrate(tool - 1)
+            self._add_tool()
         else:
             print("Herramienta no encontrada")
 
