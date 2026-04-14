@@ -16,7 +16,8 @@ class UR5():
         self._receptor = rtde_receive.RTDEReceiveInterface(ip)
         self._controlador = rtde_control.RTDEControlInterface(ip)
 
-        full_data = UR5.laod_from_json(path_json)
+        #full_data = UR5.laod_from_json(path_json)
+        full_data = {}
         self._workplace = workplace
         self._tools = tools
         self._active_tool = None
@@ -58,8 +59,14 @@ class UR5():
         self._home = UR5._validate_home(new_home)
 #------------------------------------------
 
+
+    # @staticmethod
+    # def _load_from_json(self):
+    #     full_data = UR5._validate_json()
+    #     json.
+
     @staticmethod
-    def laod_from_json(json_path:str):
+    def _validate_json(json_path:str):
         try:
             with open(json_path, 'r') as f:
                 full_data = json.load(f)
@@ -171,5 +178,4 @@ class UR5():
 
 
     
-            
 
