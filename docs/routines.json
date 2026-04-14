@@ -1,0 +1,29 @@
+{
+    "points": {
+        "mesa_recogida": {
+            "position": [0.5, 0.1, 0.2],
+            "orientation": [3.14, 0.0, 0.0]
+        },
+        "zona_segura": {
+            "position": [0.3, 0.0, 0.5],
+            "orientation": [3.14, 0.0, 0.0]
+        }
+    },
+    "routines": {
+        "recoger_pieza": [
+            {
+                "name": "zona_segura",
+                "type": "joint",
+                "speed": 0.8,
+                "acceleration": 1.2
+            },
+            {
+                "name": "mesa_recogida",
+                "type": "linear",
+                "speed": 0.2,
+                "acceleration": 0.5,
+                "gripper": "close"
+            }
+        ]
+    }
+}
