@@ -22,23 +22,16 @@ class UR5():
     "Robot UR5"
     _JOINT_LIMIT_DEG = 355
 
-    def __init__(self, ip: str,home: tuple[float], workplace: list[float] = None, path_json: str = None, tools: dict[str:tuple[int]] = {}):
-        self._home = UR5._validate_home(home)
-        
-
+    def __init__(self, ip: str,home: tuple[float], path_json: str = None):        
         # Interfaces
         self._receptor = rtde_receive.RTDEReceiveInterface(ip)
         self._controlador = rtde_control.RTDEControlInterface(ip)
-
-        #full_data = UR5.laod_from_json(path_json)
-        full_data = {}
-        self._workplace = workplace
-        self._tools = tools
+        self._home = home
+        full_data = UR5.laod_from_json(path_json)
         self._active_tool = None
-        self._estate = None
+        self._tools = full_data.get("tools", {})
         self._points = full_data.get("points", {})
         self._routines = full_data.get("routines", {})
-        self._auto_point_counter = 0 # Adapter for JSON
 
 #-----------| GETTERS |-------------------
     @property
@@ -74,12 +67,9 @@ class UR5():
 #------------------------------------------
 
 
-    @staticmethod
-    def _load_from_json(self):
-        pass
 
     @staticmethod
-    def _validate_json(json_path:str):
+    def laod_from_json(json_path:str):
         try:
             with open(json_path, 'r') as f:
                 full_data = json.load(f)
@@ -124,7 +114,7 @@ class UR5():
         """
         Change tool.
         """
-        self.controlador.setTcp(self.herramientas[name_tool] )
+        self._controlador.setTcp(self.herramientas[name_tool] )
         self.active_tool = name_tool
     
 
@@ -165,13 +155,13 @@ class UR5():
             #     self._controlador.moveL(point, speed, acceleration)
   
 
-    def add_routine(self, name_routine, routine:dict) -> None:
-        pass            
+    def add_routine(self, points_config, name_routine, dict) -> None:
+        self._routines[name_routine].append(points_config)            
 
-    def add_point(self, coord:dict) -> bool:
-        name_point = coord["name"]
-        position = coord["position"]
-        orientation = coord["orientation"]
+    def add_point(self, name_point) -> bool:
+        tcp_pose = self._receptor.getActualTCPPose()
+        position = tcp_pose[:3]
+        orientation = tcp_pose[3:]
 
         self._points[name_point] = {
             "position":position,
@@ -179,9 +169,13 @@ class UR5():
         }
 
 
-    def add_tool(self, name, tcp_new_tool) -> None:
+
+    def add_tool(self, name, tcp_new_tool, mass) -> None:
         self._active_tool = name
-        self._tools[name] = tcp_new_tool
+        self._tools[name] = {
+            "tcp":tcp_new_tool,
+            "mass":mass
+        }
 
 
     

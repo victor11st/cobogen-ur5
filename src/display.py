@@ -33,9 +33,9 @@ class Display:
                 case "2": 
                     self._execute_routine()  # pruebas
                 case "3":
-                    self._handle_add_point_to_routine()
+                    self._create_point()
                 case "4":
-                    self._teach_mode()
+                    self._create_routine()
                 case "5":
                     self._config_hardware()
                 case "6":
@@ -98,51 +98,15 @@ class Display:
 
 
     @staticmethod
-    def _gestor_routine_opttion_menu(routine_selected):
-        print(f"Rutina seleccionada: {routine_selected}")
-        print("1. Modificar rutina.")
-        print("2. Eliminar rutina.")
-        print("3. Cancelar operación.")
+    def _add_routine_menu():
+        print("AÑADIR RUTINA")
+        print("1. Añadir punto a la secuencia.")
+        print("2. Eliminar ultimo punto añadido.")
+        print("3. Guardar rutina y salir.")
+        print("4. Cancelar operación.")
 
 
 
-
-    @staticmethod
-    def _request_info_point_menu():
-        while True:
-            name_point = input("Escriba el nombre del punto: ")
-            if name_point.strip() == "":
-                input("Nombre no valido.")
-                Display._clean_display
-            else:
-                break
-
-        while True:
-            Display._clean_display()
-            print("Tipo de movimiento:")
-            print("1. Linear.")
-            print("2. Joint.")
-            opt = input("Seleccione una optión.")
-            match opt:
-                case "1": 
-                    type_move = "linear" 
-                    break
-                case "2": 
-                    type_move = "joint"
-                    break
-                case _: input("optión no valida")
-        Display._clean_display()
-        speed = Display._get_float_input(messege="Velocidad (optional: 0.5 por defecto): ", default=0.5)
-        acceleration = Display._get_float_input(messege="Aceleración (optional: 1.0 por defecto): ", default=1.0)
-        
-        config_new_point = {
-            "name":name_point,
-            "type":type_move,
-            "speed":speed,
-            "acceleration":acceleration
-        }
-    
-        return config_new_point
 
     
     @staticmethod
@@ -202,10 +166,9 @@ class Display:
 
 
     def _config_hardware(self):
-        print("\n optiones:")
         while True:
             Display._config_hardware_menu()
-            opt = input("Selecciones la optíon que desee")
+            opt = input("Selecciones la opción que desee: ")
             Display._clean_display()     
             match opt:
                 case "1":self._show_and_select_tool()
@@ -257,6 +220,7 @@ class Display:
                     input()
                 case "2": 
                     self._lists_routines()
+                    input()
                 case "3": self._remove_point()
                 case "4": self._remove_routines()
                 case "5": break
@@ -296,6 +260,9 @@ class Display:
                 if opt in options:
                     if options[opt] == "salir":
                         break
+                    if options[opt] == "home":
+                        print("ERROR: Home no puede ser eliminado, si quiere modificarlo, dirigase a mapear posicion para sobreescribirlo.")
+                        continue
                     name_point = options[opt]
                     point_delete = self._robot.delete_point(name_point)
                     print(f" El punto {point_delete} fue eliminado correctamente.")
@@ -313,53 +280,56 @@ class Display:
         while True:
 
             print("Cambiar herramienta.")
-            tools = self._list_tools()
-            if not tools:
-                print("No hay herramientas definidas.")
-            
-            else:
-                opt = input("seleccione: una optión:")
+            options = self._list_tools()
+            options = self._add_exit_option(options)          
 
-                if opt in tools:
-                    if tools[opt] == "salir":
-                        return
-                    else:
-                        name_tool = tools[opt]
-                        self._robot.change_active_tool(name_tool)
-                        print(f"{name_tool} activa.")
-                        break
+            opt = input("seleccione: una optión:")
+
+            if opt in options:
+                if options[opt] == "salir":
+                    break
                 else:
-                    input("optión no valida.")
+                    name_tool = options[opt]
+                    self._robot.change_active_tool(name_tool)
+                    print(f"{name_tool} activa.")
+                    break
+            else:
+                input("optión no valida.")
 
         
 
 
     def _delete_tool(self):
         while True:
-            tools = self._list_tools()
+
+            Display._clean_display()
+            print("Eliminar herramienta.")
+            options = self._list_tools()
+            options = self._add_exit_option(options)          
+
             opt = input("seleccione: una optión:")
-            name_tool = tools[opt]
-            if not tools:
-                print("No hay herramientas definidas.")
-            elif opt in tools:
-                if tools[opt] == "salir":
+
+            if opt in options:
+                if options[opt] == "salir":
                     break
+                elif options[opt] in self._robot.active_tool:
+                    print("Herramienta activa no puede ser eliminada.")
                 else:
-                    tool = self._robot.delete_tool(name_tool)
-                    input(f"{tool} fue eliminado correctamente.")
+                    name_tool = options[opt]
+                    self._robot.delete_tool(name_tool)
+                    print(f"{name_tool} activa.")
+                    break
             else:
-                print("Herramienta no existe")
+                input("optión no valida.")
+
          
-
-
-
-
 
     def _add_tool(self):
         print("AÑADIR HERRAMIENTA")
         name = input("Nombre de la herramienta: ")
         tcp_new_tool = Display._get_tcp_menu()
-        self._robot.add_tool(name, tcp_new_tool)
+        mass = Display._get_float_input(messege="peso de la herramienta")
+        self._robot.add_tool(name, tcp_new_tool, mass)
         Display._clean_display()
 
 
@@ -377,15 +347,13 @@ class Display:
     def _execute_routine(self):
         while True:
             print("RUTINAS.")
-            routines = self._lists_routines() 
-            if not routines:
-                input("No hay rutinas definidas")
-                break
+            options = self._lists_routines() 
+            options = self._add_exit_option(options)
             opt = input("Seleccione rutina:")
-            if opt in routines:
-                if routines[opt] == "salir":
+            if opt in options:
+                if options[opt] == "salir":
                     break
-                name_routine = routines[opt]
+                name_routine = options[opt]
                 self._robot.execute_routine(name_routine)
             else:
                 input("No existe rutina")
@@ -395,137 +363,162 @@ class Display:
 
 
 
-    def _teach_mode(self) -> None:
+
+
+
+    @staticmethod
+    def _add_point_menu():
+        print("¿Desea añadir un punto?.")
+        print("1. Para guardar punto.")
+        print("2. Finalizar.")
+
+
+    def _create_point(self):
+        while True:
+            self._clean_display()
+            self._add_point_menu()
+            opt = input("Seleccione una opción: ")
+            match opt:
+                case "1":
+                    self._add_point()
+                case "2":
+                    break
+                case _: 
+                    input("Opción no valida")
+
+
+
+
+
+    def _add_point(self):
+        self._clean_display()
+        name_point = input("Nombre del punto: ")
+        if name_point in self._robot.available_points:
+            while True:
+                self._clean_display()
+                self._overwrite_point_menu()
+                opt = input("Seleccione una opción")
+                match opt:
+                    case "1":
+                        self._robot.add_point(name_point)
+                        break
+                    case "2":
+                        break
+                    case _: print("Opción no válida.")
+        else:
+            self._robot.add_point(name_point)
+
+
+
+    def _create_routine(self) -> None:
         """
         The options for add routine
         """
-        print("Añadir nueva rutina")
-        routine_name = input("Esriba el nombre de la nueva rutina: ")
-        if routine_name not in self._robot.available_routines:
+        name_routine = input("Esriba el nombre de la nueva rutina: ")
+        if name_routine not in self._robot.available_routines:
+            points_config = []
             while True:
-                Display._teach_mode_menu()  
-                opt = input("Seleccione una optión.")          
+                Display._clean_display()
+                Display._add_routine_menu()  
+                opt = input("Seleccione una optión.")
                 match opt:
                     case "1":
-                        Display._clean_display()
-                        self._create_routines()
-                    case "2": 
+                        config_point = self._add_point_to_routine()
+                        points_config.append(config_point)
+                    case "2":
+                        self._undo_point()
+                        points_config.pop()
+                    case "3":
+                        self._save_routine(points_config, name_routine)
+                        break
+                    case "4":
                         break
                     case _: 
-                        print("optión no vaálida")
+                        input("Opción no válida.")
+
+
+
+    def _save_routine(self, points_config, name_routine):
+        self._robot.add_routine(points_config, name_routine)
+        print(f"La rutina {name_routine} fue añadida correctamente.")
+
+
+    def _add_point_to_routine(self):
+
+        Display._clean_display()
+        options = self._list_points()
+        options = self._add_exit_option()
+        opt = input("Seleccione una opción:")
+        if opt in options:
+            if options[opt] == "salir":
+                return
+            else:
+                name_point = options[opt]
+                config_point = self._request_info_point(name_point)
+                if self._confirmation_add_point(config_point):
+                    return config_point
         else:
-            input("Rutina ya existe, si desea modificarlo, dirigase a gestionar rutinas en el menu de optiones")
-
-
-    def _create_routine(self):
-        routine = []
-        name_routine = input("Nombre de la rutina.")
-        while True:
-            print("Crear rutina")
-            options = self._list_points()
-            options = self._add_exit_option()
-            opt = input("ELija el sigiente punto para crear la rutina:")
-            if options == "salir":
-                routine = self._routine_and_config()
-                self._robot.add_routine(name_routine, routine)
-            else:
-                routine.append(options[opt])
-
-            
+            input("Opción no valida")
+        return None
+        
+                
 
 
 
-    def _handle_add_point_to_routine(self:str) -> None: #revisar
-        """
-        Add new points for new routine
-        """
-        while True:
-            Display._clean_display()
-            new_point = self._get_point_info()
-            name_point = new_point["name"]
-            if name_point in self._robot.available_points:
-                self._clean_display()
-                Display._overwrite_point_menu()
-                opt = input("Seleccione una optión: ")
-                match opt:
-                    case "1":
-                        self,self._confirmation_add_point(new_point)
-                        break
-                    case "2":
-                        continue
-                    case "3":
-                        break
-                    case _:
-                        input(print("optión no valida."))
-                        Display._clean_display()
-            else:
-                self._confirmation_add_point(new_point)
-                break
-    
-    def _confirmation_add_point(self,new_point):
-        name_point = new_point["name"]
-        coord = new_point["coord"]
-        config = new_point["config"]
+    @staticmethod
+    def _confirmation_add_point(config_point:dict):
 
-        position = coord["position"]
-        orientation = coord["orientation"]
-   
-        type_move = config["type"] 
-        speed = config["speed"]
-        acceleration = config["acceleration"] 
+        name_point = config_point["name"]
+        type_move = config_point["type"] 
+        speed = config_point["speed"]
+        acceleration = config_point["acceleration"] 
 
         while True:
-            print("PUNTO CONFIGURADO")
+            print("MOVIMIENTO CONFIGURADO")
             print(f"Nombre del punto: {name_point}   Tipo de movimiento: {type_move}")
-            print(f"Posicíon: {position}    Orientación: {orientation}")
             print(f"Velocidad: {speed}   Aceleración: {acceleration}")
             opt = input("¿Desea añadir el punto? (s/n): ")
-            self._clean_display()
+            Display._clean_display()
             match opt:
                 case "s":
-                    self._robot.add_point(coord)
-                    # self._robot.add_routine(routine_name, config)
                     input("punto añadido correctamente")
-                    break
+                    return True
                 case "n":
                     input("Punto no añadido.")
-                    break
+                    return False
                 case _:
                     input("Opción no valida")
 
 
 
 
-    def _get_point_info(self) -> dict[str:str|dict[str:str|float]]:
-        """
-        Request all information of the new point at the user.
-        """
-        position = self._robot.tcp_pose[:3]
-        orientation = self._robot.tcp_pose[3:]
+    @staticmethod
+    def _request_info_point(name_point):
 
-        config_new_point = Display._request_info_point_menu()            
-        name_point = config_new_point["name"]
-        type_move = config_new_point["type"]
-        speed = config_new_point["speed"]
-        acceleration = config_new_point["acceleration"]
+        while True:
+            Display._clean_display()
+            print("Tipo de movimiento:")
+            print("1. Linear.")
+            print("2. Joint.")
+            opt = input("Seleccione una optión.")
+            match opt:
+                case "1": 
+                    type_move = "linear" 
+                    break
+                case "2": 
+                    type_move = "joint"
+                    break
+                case _: input("optión no valida")
+        Display._clean_display()
+        speed = Display._get_float_input(messege="Velocidad (optional: 0.5 por defecto): ", default=0.5)
+        acceleration = Display._get_float_input(messege="Aceleración (optional: 1.0 por defecto): ", default=1.0)
+        
 
-
-        new_point_pose = {
+        config_new_point = {
             "name":name_point,
-            "position":position,
-            "orientation":orientation 
+            "type":type_move,
+            "speed":speed,
+            "acceleration":acceleration
         }
     
-        new_point_config = {
-            "name":name_point,
-             "type":type_move,
-             "speed":speed,
-             "acceleration":acceleration
-        }
-
-        new_point = {
-            "name":name_point,
-            "coord":new_point_pose,
-            "config":new_point_config
-        }
-        return new_point
+        return config_new_point
