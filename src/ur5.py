@@ -2,13 +2,27 @@ import rtde_receive
 import rtde_control
 import math
 import json
+import time
+from functools import wraps
+
+
+def reload_script(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self._controlador.isProgramRunning():
+            print("Reconectando con el robot")
+            self._controlador.reuploadScript()
+            time.sleep(1)
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
 
 class UR5():
     "Robot UR5"
     _JOINT_LIMIT_DEG = 355
 
-    def __init__(self, ip: str, workplace: list[float], home: tuple[float], path_json: str, tools: dict[str:tuple[int]] = {}):
-        tools = UR5._validate_tools(tools)
+    def __init__(self, ip: str,home: tuple[float], workplace: list[float] = None, path_json: str = None, tools: dict[str:tuple[int]] = {}):
         self._home = UR5._validate_home(home)
         
 
@@ -42,15 +56,15 @@ class UR5():
 
     @property
     def active_tool(self):
-        return self.active_tool
+        return self._active_tool
     
     @property
     def tools(self):
         return self._tools
     
     @property
-    def active_tool(self):
-        return self.active_tool
+    def tcp_pose(self):
+        return self._receptor.getActualTCPPose()
 #-------------------------------------------
 
 #----------| SETTERS |-----------------------
@@ -60,10 +74,9 @@ class UR5():
 #------------------------------------------
 
 
-    # @staticmethod
-    # def _load_from_json(self):
-    #     full_data = UR5._validate_json()
-    #     json.
+    @staticmethod
+    def _load_from_json(self):
+        pass
 
     @staticmethod
     def _validate_json(json_path:str):
@@ -85,13 +98,6 @@ class UR5():
         return UR5._deg_to_rad(home)
 
 
-    @staticmethod
-    def _validate_tools(tools: dict[str:tuple[int]]):
-        for name, tcp in tools.intems():
-            if len(tcp) != 6:
-                tool_deleted = tools.pop(name)
-                print(f"{tool_deleted} was ignored: Values incorrect.")        
-        return tools
 
     @staticmethod
     def _deg_to_rad(values: tuple[float|int]) -> list[float]:
@@ -101,19 +107,18 @@ class UR5():
     def _mm_to_m(value):
         return [mm/1000.0 for mm in value]
 
-    def add_tool(self, tools: dict[str:tuple]):
-        """
-        Add news tools
-        """
-        tools = self._validate_tools(tools)
-        if tools:
-            for name, tcp in tools:
-                self._tools[name] = tcp
+
 
     def delete_tool(self, name_tool):
         tool = self._tools.pop(name_tool)
-        print(f"Se eliminó {tool} correctamente.")
-
+        return tool
+    def delete_routine(self, name_routine):
+        routine = self._routines.pop(name_routine)
+        return routine
+    
+    def delete_point(self, name_point):
+        name_point = self._points.pop(name_point)
+        return name_point
 
     def change_active_tool(self, name_tool):
         """
@@ -121,18 +126,16 @@ class UR5():
         """
         self.controlador.setTcp(self.herramientas[name_tool] )
         self.active_tool = name_tool
-
-        print("The tool active is:", self.active_tool)
     
 
-
+    @reload_script
     def move_to_home(self):
         """
         Move the robot at the home position
-        """
+        """  
         self._controlador.moveJ(self._home)
 
-
+    @reload_script
     def execute_routine(self, name_routine:str) -> None:
         """
         Execute routine.
@@ -141,7 +144,7 @@ class UR5():
         points = self._points
         for target in routine:
             name = target["name"]
-            type_mov = target.get("type", "joint")
+            type_mov = "joint"
             speed = target.get("speed", 0.5)
             acceleration = target.get("acceleration", 1.0)
             
@@ -149,32 +152,36 @@ class UR5():
 
             point = aux["position"] + aux["orientation"]
 
-            if type_mov == "joint":
-                self._controlador.moveJ_IK(point, speed, acceleration)
+            if speed == "": speed = 0.5
+            if acceleration == "": acceleration = 1.0
 
-            elif type_mov == "linear":
-                self._controlador.moveL(point, speed, acceleration)
+            # if type_mov == "joint":
+            self._controlador.moveJ_IK(point, speed, acceleration)
+            print(point)
+            print(speed)
+            print(acceleration)
+            print("en reoria se movio")
+            # elif type_mov == "linear":
+            #     self._controlador.moveL(point, speed, acceleration)
   
-    def add_routine(self, name_routine:list[dict], config:dict[str:str|float]) -> None:
-        # PENSAR SI AÑADIR COMPROBACION DE EXISTENCIA DE PUNTOS, ASEGURA QUE NO HAYA ERROR
-        if name_routine in self._routines:
-            self._routines[name_routine].append(config)
-        else:
-            self._routines[name_routine] = [config]
 
-    def add_point(self, name_point:str, coord:dict[str:list[float]]) -> bool:
-        self._points[name_point] = coord
+    def add_routine(self, name_routine, routine:dict) -> None:
+        pass            
 
-        if name_point in self._points:
-            return True
-        return False
-            
+    def add_point(self, coord:dict) -> bool:
+        name_point = coord["name"]
+        position = coord["position"]
+        orientation = coord["orientation"]
 
-    def add_tool(self, tool:dict[str:str|list[float]]) -> None:
-        name = tool["name"]
-        tcp = tool["tcp"]
-        if tool["name"] not in self._tools:
-            self._active_tools[name] = tcp
+        self._points[name_point] = {
+            "position":position,
+            "orientation":orientation
+        }
+
+
+    def add_tool(self, name, tcp_new_tool) -> None:
+        self._active_tool = name
+        self._tools[name] = tcp_new_tool
 
 
     
