@@ -1,0 +1,24 @@
+//json schema:
+
+[
+  {
+    "tarea": "Mesa_a_Caja",
+    "ciclos": 1,
+    "bucle_infinito": false,
+    "velocidad_perfil": "lenta",
+    "alcance_velocidad": "solo_contacto",
+    "modo_simulacion": false,
+    "comportamiento_error": "abortar",
+    "persistente": false
+  },
+  {
+    "tarea": "Mesa_a_Descarte",
+    "ciclos": 1,
+    "bucle_infinito": false,
+    "velocidad_perfil": "rapida",
+    "alcance_velocidad": "global",
+    "modo_simulacion": true,
+    "comportamiento_error": "abortar",
+    "persistente": true
+  }
+]
