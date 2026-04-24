@@ -3,16 +3,20 @@ from faster_whisper import WhisperModel
 import io
 import os
 
-# Model path
-model_path = "/home/ivan/proyectos/ur5/models/whisper-large-v3/models--Systran--faster-whisper-small/snapshots/536b0662742c02347bc0e980a01041f333bce120/"
-
 
 print("Loading model...")
 
-model = WhisperModel(model_path, 
-                     device="cpu", # Change to 'cuda' for better performance if an NVIDIA GPU is available
-                     compute_type="int8")
+# Definimos tu carpeta base de modelos
+carpeta_modelos = "/home/ivan/proyectos/ur5/models/whisper-large-v3/"
 
+# Le decimos a faster-whisper que queremos el modelo "small".
+# Él se encargará de descargarlo limpio (o usarlo si está sano) en esa carpeta.
+model = WhisperModel(
+    "small", 
+    device="cpu", 
+    compute_type="int8",
+    download_root=carpeta_modelos
+)
 def test_model():
 
     recognizer = sr.Recognizer()
