@@ -21,7 +21,7 @@ class Display:
         print("7. Salir.")
 
 
-    def options(self):
+    def run(self):
         while True:
             Display._clean_display()
             Display._main_menu()
@@ -334,15 +334,18 @@ class Display:
 
 
     def _calibrate_tool(self):
-        self._show_and_select_tool()
-        self._list_tools()
-        tool = input("Elija la herramienta que desee calibrar: ")
-        if tool <= len(self._robot.tools):
-            print(f"Calibrando herramienta {self._robot.tools[tool - 1]}")
-            self._add_tool()
+        print("CALIBRAR HERRAMIENTA")
+        options = self._list_tools()
+        if not options: return
+        options = self._add_exit_option(options)
+        
+        option = input("\nElija la herramienta que desee calibrar: ").strip()
+        if option in options:
+            if options[option] == "salir": return
+            print(f"Calibrando herramienta: {options[option]}")
+            self._add_tool() # Asumes that add_tool overwrites the existing one
         else:
-            print("Herramienta no encontrada")
-
+            input("Opción no encontrada.")      
 
     def _execute_routine(self):
         while True:
@@ -426,7 +429,6 @@ class Display:
                         config_point = self._add_point_to_routine()
                         points_config.append(config_point)
                     case "2":
-                        self._undo_point()
                         points_config.pop()
                     case "3":
                         self._save_routine(points_config, name_routine)
@@ -447,7 +449,7 @@ class Display:
 
         Display._clean_display()
         options = self._list_points()
-        options = self._add_exit_option()
+        options = self._add_exit_option(options)
         opt = input("Seleccione una opción:")
         if opt in options:
             if options[opt] == "salir":
