@@ -1,0 +1,32 @@
+{
+  "tools": {
+    "Pinza_Basica": {
+      "tcp": [0.0, 0.0, 0.12, 0.0, 0.0, 0.0],
+      "mass": 0.85
+    },
+    "Sensor_Optico": {
+      "tcp": [0.04, 0.0, 0.10, 0.0, 0.0, 0.0],
+      "mass": 1.2
+    }
+  },
+  "points": {
+    "Home": {
+      "position": [0.0, -0.5, 0.4],
+      "orientation": [3.14, 0, 0]
+    },
+    "Pre_Caja": {
+      "position": [0.4, 0.2, 0.3],
+      "orientation": [3.14, 0, 0]
+    }
+  },
+  "routines": {
+    "Coger_de_Caja": [
+      {
+        "name": "Pre_Caja",
+        "type": "joint",
+        "speed": 0.5,
+        "acceleration": 1.0
+      }
+    ]
+  }
+}
